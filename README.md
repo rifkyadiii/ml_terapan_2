@@ -145,17 +145,17 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 ### Metrik Evaluasi
 
 1. **Root Mean Square Error (RMSE)**
-   - Formula: RMSE = √(Σ(predicted - actual)² / n)
+   - Formula: RMSE = \sqrt{\frac{\sum_{i=1}^{n} (\text{predicted}_i - \text{actual}_i)^2}{n}}
    - Mengukur akurasi prediksi rating dengan menghitung akar kuadrat dari rata-rata kuadrat error
    - Semakin kecil nilai RMSE, semakin akurat prediksi
 
 2. **Precision@K**
-   - Formula: Precision@K = |Relevant items ∩ Recommended items| / K
+   - Formula: \text{Precision@K} = \frac{|\text{Relevant items} \cap \text{Recommended items}|}{K}
    - Mengukur proporsi item relevan dalam top-K rekomendasi
    - Relevansi didefinisikan sebagai rating ≥ 4.0
 
 3. **Coverage**
-   - Formula: Coverage = |Items that can be recommended| / |Total items|
+   - Formula: \text{Coverage} = \frac{|\text{Items that can be recommended}|}{|\text{Total items}|}
    - Mengukur persentase item yang dapat direkomendasikan sistem
 
 ### Hasil Evaluasi
