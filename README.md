@@ -145,33 +145,64 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 ### Metrik Evaluasi
 
 1. **Root Mean Square Error (RMSE)**
-   - Formula:
-   
-   $$
-   RMSE = \sqrt{\frac{\sum_{i=1}^{n} (\text{predicted}_i - \text{actual}_i)^2}{n}}
-   $$
 
-   - Mengukur akurasi prediksi rating dengan menghitung akar kuadrat dari rata-rata kuadrat error
-   - Semakin kecil nilai RMSE, semakin akurat prediksi
+   * Formula:
 
-2. **Precision@K**
-   - Formula:
+     $$
+     RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (\text{predicted}_i - \text{actual}_i)^2}
+     $$
 
-   $$
-   Precision@K = \frac{|\text{Relevant items} \cap \text{Recommended items}|}{K}
-   $$
+   * Mengukur akurasi prediksi rating dengan menghitung akar kuadrat dari rata-rata kuadrat selisih antara nilai prediksi dan nilai aktual.
 
-   - Mengukur proporsi item relevan dalam top-K rekomendasi
-   - Relevansi didefinisikan sebagai rating ≥ 4.0
+   * Semakin kecil nilai RMSE, semakin baik akurasi model.
 
-3. **Coverage**
-   - Formula:
+2. **Mean Absolute Error (MAE)**
 
-   $$
-   Coverage = \frac{|\text{Items that can be recommended}|}{|\text{Total items}|}
-   $$
+   * Formula:
 
-   - Mengukur persentase item yang dapat direkomendasikan sistem
+     $$
+     MAE = \frac{1}{n} \sum_{i=1}^{n} \left| \text{predicted}_i - \text{actual}_i \right|
+     $$
+
+   * Mengukur rata-rata absolut dari selisih antara nilai prediksi dan nilai aktual.
+
+   * Semakin kecil nilai MAE, semakin akurat prediksi model.
+
+3. **Precision\@k (Precision at K)**
+
+   * Formula:
+
+     $$
+     \text{Precision@k} = \frac{\text{Jumlah item relevan pada top-}k}{k}
+     $$
+
+   * Menilai seberapa banyak item yang direkomendasikan dalam top-**k** yang benar-benar relevan dengan pengguna.
+
+   * Precision\@5 berarti mengukur proporsi item relevan dari 5 item teratas yang direkomendasikan.
+
+4. **Mean Similarity (Content-Based Filtering)**
+
+   * Formula:
+
+     $$
+     \text{Mean\ Similarity} = \frac{1}{n} \sum_{i=1}^{n} \text{similarity}(i)
+     $$
+
+   * Mengukur rata-rata kemiripan antara item yang direkomendasikan dan item yang telah disukai pengguna berdasarkan fitur konten.
+
+   * Nilai mendekati 1 menunjukkan bahwa rekomendasi sangat mirip dengan preferensi pengguna.
+
+5. **Coverage (Content-Based Filtering)**
+
+   * Formula:
+
+     $$
+     \text{Coverage} = \frac{\text{Jumlah item yang direkomendasikan}}{\text{Total item yang tersedia}} \times 100\%
+     $$
+
+   * Mengukur seberapa besar proporsi item yang dapat direkomendasikan oleh sistem dari keseluruhan item yang ada.
+
+   * Semakin tinggi coverage, semakin beragam item yang bisa direkomendasikan.
 
 ### Hasil Evaluasi
 
