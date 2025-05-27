@@ -160,9 +160,7 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 
    * Formula:
 
-     $$
-     MAE = \frac{1}{n} \sum_{i=1}^{n} \left| \text{predicted}_i - \text{actual}_i \right|
-     $$
+     $ MAE = \frac{1}{n} \sum_{i=1}^{n} \left| \text{predicted}_i - \text{actual}_i \right| $
 
    * Mengukur rata-rata absolut dari selisih antara nilai prediksi dan nilai aktual.
 
@@ -172,9 +170,7 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 
    * Formula:
 
-     $$
-     \text{Precision@k} = \frac{\text{Jumlah item relevan pada top-}k}{k}
-     $$
+     $ \text{Precision@k} = \frac{\text{Jumlah item relevan pada top-}k}{k} $
 
    * Menilai seberapa banyak item yang direkomendasikan dalam top-**k** yang benar-benar relevan dengan pengguna.
 
@@ -184,9 +180,7 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 
    * Formula:
 
-     $$
-     \text{Mean\ Similarity} = \frac{1}{n} \sum_{i=1}^{n} \text{similarity}(i)
-     $$
+     $ \text{Mean\ Similarity} = \frac{1}{n} \sum_{i=1}^{n} \text{similarity}(i) $
 
    * Mengukur rata-rata kemiripan antara item yang direkomendasikan dan item yang telah disukai pengguna berdasarkan fitur konten.
 
@@ -196,9 +190,7 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 
    * Formula:
 
-     $$
-     \text{Coverage} = \frac{\text{Jumlah item yang direkomendasikan}}{\text{Total item yang tersedia}} \times 100\%
-     $$
+     $ \text{Coverage} = \frac{\text{Jumlah item yang direkomendasikan}}{\text{Total item yang tersedia}} \times 100\% $
 
    * Mengukur seberapa besar proporsi item yang dapat direkomendasikan oleh sistem dari keseluruhan item yang ada.
 
