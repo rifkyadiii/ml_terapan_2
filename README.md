@@ -62,13 +62,31 @@ Variabel-variabel pada dataset adalah sebagai berikut:
 
 ### Exploratory Data Analysis
 
-Analisis data menunjukkan:
-- Distribusi rating: Rating 4 paling banyak (34,2%), diikuti rating 3 (27,1%) dan 5 (21,2%)
-- Genre terpopuler: Drama (725 film), Comedy (505 film), Action (251 film)
-- Sparsity matrix user-item sangat tinggi (~93.7%), menunjukkan tantangan cold start problem
-- Rata-rata rating per pengguna: 106 rating, dengan variasi dari 20 hingga 737 rating
+Dataset ini terdiri dari 100.000 rating film yang diberikan oleh 943 pengguna unik untuk 1.682 film. 
 
-![Distribusi Rating & Top Genre](eda_analysis.png)
+![Distribusi Rating](distribusi_rating.png)
+
+Berdasarkan visualisasi distribusi rating, dapat dilihat bahwa rating terbanyak berada pada skala 4, diikuti oleh skala 3 dan 5. Rating dengan skala 1 dan 2 memiliki jumlah yang lebih sedikit.
+
+![20 Film Rating Terbanyak](rating_terbanyak.png)
+
+Berdasarkan data rating, film "Star Wars (1977)" menjadi film dengan jumlah rating terbanyak, diikuti oleh "Contact (1997)" dan "Fargo (1996)".
+
+![Film Rata-rata Rating Tertinggi](film_rata_rata_rating_tertringgi.png)
+
+Berdasarkan rata-rata rating dengan minimal 50 rating, film "12 Angry Men (1957)" dan "Close Shave, A (1995)" menduduki peringkat teratas, diikuti oleh film-film klasik seperti "Star Wars (1977)", "Usual Suspects, The (1995)", dan "Schindler's List (1993)".
+
+![Distribusi Rating Per Pengguna](ditribusi_rating_per_perngguna.png)
+
+Visualisasi distribusi jumlah rating per pengguna menunjukkan bahwa sebagian besar pengguna memberikan rating dalam jumlah yang relatif kecil, dengan penurunan jumlah pengguna seiring dengan bertambahnya jumlah rating yang mereka berikan. Distribusi ini cenderung miring ke kanan (right-skewed).
+
+![Distribusi Genre Film](distribusi_genre_film.png)
+
+Berdasarkan visualisasi distribusi genre film, genre "Drama" memiliki jumlah film terbanyak, diikuti oleh "Comedy" dan "Action". Beberapa genre seperti "Fantasy" dan "unknown" memiliki jumlah film yang paling sedikit dalam dataset ini.
+
+![Korelasi Antar Genre Film](korelasi_antar_genre.png)
+
+Visualisasi korelasi antar genre film menunjukkan beberapa korelasi positif dan negatif. Contohnya, terdapat korelasi positif antara genre "Action" dan "Sci-Fi", serta antara "Animation" dan "Children". Sebaliknya, beberapa genre menunjukkan korelasi negatif yang lemah. Matriks korelasi ini memberikan gambaran tentang bagaimana kemunculan suatu genre dapat berhubungan dengan kemunculan genre lainnya dalam film.
 
 ## Data Preparation
 
