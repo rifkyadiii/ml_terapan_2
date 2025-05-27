@@ -62,8 +62,6 @@ Variabel-variabel pada dataset adalah sebagai berikut:
 
 ### Exploratory Data Analysis
 
-Dataset ini terdiri dari 100.000 rating film yang diberikan oleh 943 pengguna unik untuk 1.682 film. 
-
 ![Distribusi Rating](distribusi_rating.png)
 
 Berdasarkan visualisasi distribusi rating, dapat dilihat bahwa rating terbanyak berada pada skala 4, diikuti oleh skala 3 dan 5. Rating dengan skala 1 dan 2 memiliki jumlah yang lebih sedikit.
