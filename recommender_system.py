@@ -3,7 +3,9 @@
 
 # ## Import Library
 
-# In[309]:
+# Tahap ini bertujuan untuk mengimpor semua library Python yang diperlukan untuk analisis data, pemodelan recommender system, dan evaluasi. Library seperti pandas digunakan untuk manipulasi data, scikit-learn untuk pemodelan dan metrik, dan matplotlib serta seaborn untuk visualisasi.
+
+# In[376]:
 
 
 import pandas as pd
@@ -22,7 +24,9 @@ warnings.filterwarnings('ignore')
 
 # ## Data Loading
 
-# In[310]:
+# Pada tahap ini, kita akan memuat dua dataset utama yang akan digunakan: u.data yang berisi informasi rating film oleh pengguna, dan u.item yang berisi detail informasi film seperti judul dan genre.
+
+# In[377]:
 
 
 # Membaca data ratings
@@ -30,13 +34,15 @@ ratings_cols = ['user_id', 'item_id', 'rating', 'timestamp']
 ratings = pd.read_csv('dataset/u.data', sep='\t', names=ratings_cols, encoding='latin-1')
 
 
-# In[311]:
+# In[378]:
 
 
 ratings.head()
 
 
-# In[312]:
+# Ini adalah tampilan awal dari dataframe ratings yang berisi ID pengguna, ID film, rating yang diberikan, dan timestamp.
+
+# In[379]:
 
 
 # Membaca data movies  
@@ -48,15 +54,19 @@ movies_cols.extend(genres)
 movies = pd.read_csv('dataset/u.item', sep='|', names=movies_cols, encoding='latin-1')
 
 
-# In[313]:
+# In[380]:
 
 
 movies.head()
 
 
+# Ini adalah tampilan awal dari dataframe movies yang berisi informasi detail film, termasuk judul, tanggal rilis, URL IMDb, dan flag untuk setiap genre.
+
 # ## Data Understanding
 
-# In[314]:
+# Pada tahap pemahaman data, kita akan melakukan eksplorasi awal untuk mendapatkan insight mengenai karakteristik dataset. Ini meliputi melihat jumlah data, distribusi rating, film dengan rating terbanyak, rata-rata rating tertinggi, aktivitas rating pengguna, distribusi genre film, dan korelasi antar genre.
+
+# In[381]:
 
 
 # Jumlah data
@@ -65,7 +75,9 @@ print(f"Jumlah pengguna unik: {ratings['user_id'].nunique()}")
 print(f"Jumlah film unik: {ratings['item_id'].nunique()}")
 
 
-# In[315]:
+# Terdapat 100,000 rating dari 943 pengguna untuk 1682 film.
+
+# In[382]:
 
 
 # Distribusi Rating
@@ -77,7 +89,9 @@ plt.ylabel('Jumlah')
 plt.show()
 
 
-# In[316]:
+# Berdasarkan visualisasi distribusi rating, dapat dilihat bahwa rating terbanyak berada pada skala 4, diikuti oleh skala 3 dan 5. Rating dengan skala 1 dan 2 memiliki jumlah yang lebih sedikit.
+
+# In[383]:
 
 
 # 20 Film dengan Rating Terbanyak
@@ -98,7 +112,9 @@ plt.tight_layout()
 plt.show()
 
 
-# In[317]:
+# Berdasarkan data rating, film "Star Wars (1977)" menjadi film dengan jumlah rating terbanyak, diikuti oleh "Contact (1997)" dan "Fargo (1996)".
+
+# In[384]:
 
 
 # Rata-rata Rating Tertinggi (Film dengan >=50 rating)
@@ -116,7 +132,9 @@ plt.ylabel('Judul Film')
 plt.show()
 
 
-# In[318]:
+# Berdasarkan rata-rata rating dengan minimal 50 rating, film "12 Angry Men (1957)" dan "Close Shave, A (1995)" menduduki peringkat teratas, diikuti oleh film-film klasik seperti "Star Wars (1977)", "Usual Suspects, The (1995)", dan "Schindler's List (1993)".
+
+# In[385]:
 
 
 # Aktivitas Rating Pengguna
@@ -130,7 +148,9 @@ plt.ylabel('Jumlah Pengguna')
 plt.show()
 
 
-# In[319]:
+# Visualisasi distribusi jumlah rating per pengguna menunjukkan bahwa sebagian besar pengguna memberikan rating dalam jumlah yang relatif kecil, dengan penurunan jumlah pengguna seiring dengan bertambahnya jumlah rating yang mereka berikan. Distribusi ini cenderung miring ke kanan (right-skewed).
+
+# In[386]:
 
 
 # Distribusi Genre Film
@@ -154,7 +174,20 @@ plt.tight_layout()
 plt.show()
 
 
-# In[321]:
+# In[387]:
+
+
+# Analisis genre
+genre_columns = genres[1:]  # Exclude 'unknown'
+genre_counts = movies[genre_columns].sum().sort_values(ascending=False)
+print("\nTop 10 Genre Terpopuler:")
+for i, (genre, count) in enumerate(genre_counts.head(10).items(), 1):
+    print(f"{i:2d}. {genre}: {count} film")
+
+
+# Berdasarkan visualisasi distribusi genre film, genre "Drama" memiliki jumlah film terbanyak, diikuti oleh "Comedy" dan "Action". Beberapa genre seperti "Fantasy" dan "unknown" memiliki jumlah film yang paling sedikit dalam dataset ini.
+
+# In[388]:
 
 
 # Korelasi Rating antar Genre
@@ -166,9 +199,13 @@ plt.title('Korelasi antar Genre Film')
 plt.show()
 
 
+# Heatmap ini menggambarkan hubungan korelasi antara berbagai genre film dalam dataset.
+
 # ## Data Preparation
 
-# In[322]:
+# Tahap persiapan data melibatkan penggabungan dataset yang relevan dan pembuatan fitur yang diperlukan untuk pemodelan. Untuk content-based filtering, kita akan membuat representasi string dari genre film. Untuk collaborative filtering, kita akan membuat user-item matrix dan membagi data menjadi set pelatihan dan pengujian.
+
+# In[389]:
 
 
 # Merge data untuk analisis lengkap
@@ -176,7 +213,7 @@ movie_ratings = pd.merge(ratings, movies[['movie_id', 'title'] + genre_columns],
                         left_on='item_id', right_on='movie_id')
 
 
-# In[323]:
+# In[390]:
 
 
 # Membuat genre string untuk content-based filtering
@@ -189,7 +226,7 @@ for idx, row in movies.iterrows():
     movies.at[idx, 'genre_string'] = ' '.join(active_genres)
 
 
-# In[324]:
+# In[391]:
 
 
 # Statistik film dengan genre
@@ -198,7 +235,9 @@ print(f"Film dengan genre: {len(movies_with_genres):,}")
 print(f"Film tanpa genre: {len(movies) - len(movies_with_genres):,}")
 
 
-# In[325]:
+# Hampir semua film memiliki informasi genre.
+
+# In[392]:
 
 
 # Split data untuk evaluasi
@@ -207,7 +246,9 @@ print(f"Training data: {len(train_data):,}")
 print(f"Testing data: {len(test_data):,}")
 
 
-# In[326]:
+# Data rating dibagi menjadi 80% untuk pelatihan dan 20% untuk pengujian.
+
+# In[393]:
 
 
 # Membuat user-item matrix untuk data pengujian
@@ -215,7 +256,9 @@ test_user_item_matrix = test_data.pivot(index='user_id', columns='item_id', valu
 print(f"Test User-item matrix shape: {test_user_item_matrix.shape}")
 
 
-# In[327]:
+# Matriks user-item untuk data pengujian memiliki 940 baris (pengguna) dan 1411 kolom (film yang muncul di set pengujian).
+
+# In[394]:
 
 
 # Membuat user-item matrix untuk collaborative filtering
@@ -223,7 +266,9 @@ train_user_item_matrix = train_data.pivot(index='user_id', columns='item_id', va
 print(f"Train User-item matrix shape: {train_user_item_matrix.shape}")
 
 
-# In[328]:
+# Matriks user-item untuk data pelatihan memiliki 943 baris (pengguna) dan 1653 kolom (film yang muncul di set pelatihan).
+
+# In[395]:
 
 
 user_item_matrix = ratings.pivot(index='user_id', columns='item_id', values='rating').fillna(0)
@@ -234,11 +279,17 @@ ratings_per_user = ratings.groupby('user_id')['rating'].count()
 print(f"Rata-rata rating per pengguna: {ratings_per_user.mean():.0f}\nVariasi rating terendah per user: {ratings_per_user.min()}\nVariasi rating tertinggi per user: {ratings_per_user.max()}")
 
 
+# Matriks user-item sangat sparse (93.7% nilai adalah 0), yang umum dalam recommender system. Rata-rata setiap pengguna memberikan sekitar 106 rating, dengan variasi yang cukup besar antar pengguna.
+
 # ## Modeling
 
-# Content-Based Filtering
+# Pada tahap ini, kita akan membangun dua jenis sistem rekomendasi: Content-Based Filtering dan Collaborative Filtering.
 
-# In[329]:
+# ### Content-Based Filtering
+
+#  Content-based filtering akan merekomendasikan film yang serupa dengan film yang disukai pengguna di masa lalu, berdasarkan deskripsi konten film (dalam kasus ini, genre). Kita akan menggunakan TF-IDF untuk mengekstrak fitur dari genre dan cosine similarity untuk mengukur kemiripan antar film.
+
+# In[396]:
 
 
 # TF-IDF Vectorization untuk genre
@@ -246,21 +297,21 @@ tfidf = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf.fit_transform(movies_with_genres['genre_string'])
 
 
-# In[330]:
+# In[397]:
 
 
 # Menghitung cosine similarity
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 
-# In[331]:
+# In[398]:
 
 
 # Membuat mapping judul ke index
 indices = pd.Series(movies_with_genres.index, index=movies_with_genres['title']).drop_duplicates()
 
 
-# In[332]:
+# In[399]:
 
 
 # Fungsi rekomendasi content-based
@@ -298,7 +349,7 @@ def get_content_recommendations(title, cosine_sim=cosine_sim, df=movies_with_gen
         return f"Terjadi error saat mencari rekomendasi untuk '{title}': {str(e)}"
 
 
-# In[333]:
+# In[400]:
 
 
 # Test rekomendasi content-based
@@ -315,9 +366,11 @@ else:
     print(content_recs)
 
 
-# Collaborative Filtering
+# ### Collaborative Filtering
 
-# In[334]:
+# Collaborative filtering membuat rekomendasi berdasarkan preferensi pengguna lain yang memiliki selera yang mirip. Kita akan menggunakan Singular Value Decomposition (SVD) untuk melakukan matrix factorization pada user-item matrix.
+
+# In[401]:
 
 
 # Menggunakan SVD untuk matrix factorization
@@ -326,7 +379,7 @@ user_factors = svd.fit_transform(user_item_matrix)
 item_factors = svd.components_
 
 
-# In[335]:
+# In[402]:
 
 
 # Rekonstruksi matrix
@@ -336,7 +389,7 @@ predicted_ratings_df = pd.DataFrame(predicted_ratings,
                                   columns=user_item_matrix.columns)
 
 
-# In[336]:
+# In[403]:
 
 
 # Fungsi rekomendasi collaborative filtering
@@ -374,7 +427,7 @@ def get_collaborative_recommendations(user_id, predicted_ratings_df=predicted_ra
     return pd.DataFrame(rec_with_titles)
 
 
-# In[337]:
+# In[404]:
 
 
 # Test rekomendasi collaborative filtering
@@ -392,7 +445,9 @@ else:
 
 # ## Evaluation
 
-# In[338]:
+# Pada tahap evaluasi, kita akan mengukur kinerja dari kedua model rekomendasi yang telah dibangun. Untuk content-based filtering, kita akan melihat rata-rata skor similarity dari rekomendasi untuk sampel film. Untuk collaborative filtering, kita akan menggunakan metrik seperti Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), dan Precision@K.
+
+# In[405]:
 
 
 # Evaluasi Content-Based FilterinG
@@ -412,7 +467,7 @@ def evaluate_content_based(sample_titles, top_n=10):
         return None, 0.0
 
 
-# In[339]:
+# In[406]:
 
 
 # Evaluasi Collaborative Filtering - RMSE & MAE
@@ -434,7 +489,7 @@ def evaluate_collaborative_rmse(test_user_item_matrix, predicted_ratings_df):
         return None, None
 
 
-# In[340]:
+# In[407]:
 
 
 # Evaluasi Collaborative Filtering - Precision@K
@@ -467,7 +522,7 @@ def evaluate_precision_at_k(predicted_ratings_df, test_user_item_matrix, k=5, th
     return round(np.mean(precisions), 4) if precisions else None
 
 
-# In[341]:
+# In[408]:
 
 
 sample_movies = movies_with_genres['title'].sample(10, random_state=42).tolist()
@@ -489,7 +544,9 @@ print(f"- Coverage Content-Based   : {coverage_content:.1f}%")
 
 # ## Inferensi
 
-# In[342]:
+# Pada tahap inferensi, kita akan menggunakan model yang telah dilatih untuk memberikan rekomendasi kepada pengguna tertentu berdasarkan riwayat rating mereka atau preferensi genre.
+
+# In[409]:
 
 
 # Content-based untuk user berdasarkan film favorit
