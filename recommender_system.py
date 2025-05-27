@@ -3,7 +3,7 @@
 
 # ## Import Library
 
-# In[274]:
+# In[309]:
 
 
 import pandas as pd
@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 
 # ## Data Loading
 
-# In[275]:
+# In[310]:
 
 
 # Membaca data ratings
@@ -30,13 +30,13 @@ ratings_cols = ['user_id', 'item_id', 'rating', 'timestamp']
 ratings = pd.read_csv('dataset/u.data', sep='\t', names=ratings_cols, encoding='latin-1')
 
 
-# In[276]:
+# In[311]:
 
 
 ratings.head()
 
 
-# In[277]:
+# In[312]:
 
 
 # Membaca data movies  
@@ -48,7 +48,7 @@ movies_cols.extend(genres)
 movies = pd.read_csv('dataset/u.item', sep='|', names=movies_cols, encoding='latin-1')
 
 
-# In[278]:
+# In[313]:
 
 
 movies.head()
@@ -56,15 +56,189 @@ movies.head()
 
 # ## Data Understanding
 
-# In[279]:
+# In[314]:
 
+
+# Jumlah data
+print(f"Jumlah total rating: {len(ratings)}")
+print(f"Jumlah pengguna unik: {ratings['user_id'].nunique()}")
+print(f"Jumlah film unik: {ratings['item_id'].nunique()}")
+
+
+# In[315]:
+
+
+# Distribusi Rating
+plt.figure(figsize=(8,5))
+sns.countplot(data=ratings, x='rating', palette='viridis')
+plt.title('Distribusi Rating')
+plt.xlabel('Rating')
+plt.ylabel('Jumlah')
+plt.show()
+
+
+# In[316]:
+
+
+# 20 Film dengan Rating Terbanyak
+
+# Gabungkan data ratings dan judul film
+ratings_movies = pd.merge(ratings, movies, left_on='item_id', right_on='movie_id')
+
+# Hitung jumlah rating per film
+top_rated_movies = ratings_movies.groupby('title')['rating'].count().sort_values(ascending=False).head(20)
+
+# Visualisasi
+plt.figure(figsize=(10,8))
+top_rated_movies.sort_values().plot(kind='barh', color='skyblue')
+plt.title('20 Film dengan Rating Terbanyak')
+plt.xlabel('Jumlah Rating')
+plt.ylabel('Judul Film')
+plt.tight_layout()
+plt.show()
+
+
+# In[317]:
+
+
+# Rata-rata Rating Tertinggi (Film dengan >=50 rating)
+
+movie_stats = ratings_movies.groupby('title').agg({'rating': ['mean', 'count']})
+movie_stats.columns = ['avg_rating', 'count_rating']
+popular_movies = movie_stats[movie_stats['count_rating'] >= 50].sort_values(by='avg_rating', ascending=False).head(10)
+
+# Visualisasi
+plt.figure(figsize=(10,6))
+sns.barplot(data=popular_movies.reset_index(), x='avg_rating', y='title', palette='coolwarm')
+plt.title('10 Film dengan Rata-rata Rating Tertinggi (min 50 rating)')
+plt.xlabel('Rata-rata Rating')
+plt.ylabel('Judul Film')
+plt.show()
+
+
+# In[318]:
+
+
+# Aktivitas Rating Pengguna
+user_activity = ratings['user_id'].value_counts()
+
+plt.figure(figsize=(10,5))
+sns.histplot(user_activity, bins=30, kde=True, color='purple')
+plt.title('Distribusi Jumlah Rating per Pengguna')
+plt.xlabel('Jumlah Rating')
+plt.ylabel('Jumlah Pengguna')
+plt.show()
+
+
+# In[319]:
+
+
+# Distribusi Genre Film
+
+# Kombinasi genre
+genre_cols = movies.columns[5:]  # 5 kolom pertama: id, title, release_date, etc
+movies['genre_string'] = movies[genre_cols].apply(lambda x: '|'.join(genre_cols[x==1]), axis=1)
+
+# Pisahkan genre untuk analisis
+genre_explode = movies[['movie_id', 'genre_string']].copy()
+genre_explode = genre_explode.assign(genre=genre_explode['genre_string'].str.split('|')).explode('genre')
+
+# Visualisasi
+plt.figure(figsize=(12,6))
+sns.countplot(data=genre_explode, x='genre', order=genre_explode['genre'].value_counts().index, palette='Set2')
+plt.title('Distribusi Genre Film')
+plt.xlabel('Genre')
+plt.ylabel('Jumlah Film')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+# In[321]:
+
+
+# Korelasi Rating antar Genre
+genre_matrix = movies[genres].corr()
+
+plt.figure(figsize=(12,10))
+sns.heatmap(genre_matrix, annot=True, cmap='YlGnBu', fmt=".2f")
+plt.title('Korelasi antar Genre Film')
+plt.show()
+
+
+# ## Data Preparation
+
+# In[322]:
+
+
+# Merge data untuk analisis lengkap
+movie_ratings = pd.merge(ratings, movies[['movie_id', 'title'] + genre_columns], 
+                        left_on='item_id', right_on='movie_id')
+
+
+# In[323]:
+
+
+# Membuat genre string untuk content-based filtering
+movies['genre_string'] = ''
+for idx, row in movies.iterrows():
+    active_genres = []
+    for genre in genre_columns:
+        if row[genre] == 1:
+            active_genres.append(genre)
+    movies.at[idx, 'genre_string'] = ' '.join(active_genres)
+
+
+# In[324]:
+
+
+# Statistik film dengan genre
+movies_with_genres = movies[movies['genre_string'] != ''].copy()
+print(f"Film dengan genre: {len(movies_with_genres):,}")
+print(f"Film tanpa genre: {len(movies) - len(movies_with_genres):,}")
+
+
+# In[325]:
+
+
+# Split data untuk evaluasi
+train_data, test_data = train_test_split(ratings, test_size=0.2, random_state=42)
+print(f"Training data: {len(train_data):,}")
+print(f"Testing data: {len(test_data):,}")
+
+
+# In[326]:
+
+
+# Membuat user-item matrix untuk data pengujian
+test_user_item_matrix = test_data.pivot(index='user_id', columns='item_id', values='rating').fillna(0)
+print(f"Test User-item matrix shape: {test_user_item_matrix.shape}")
+
+
+# In[327]:
+
+
+# Membuat user-item matrix untuk collaborative filtering
+train_user_item_matrix = train_data.pivot(index='user_id', columns='item_id', values='rating').fillna(0)
+print(f"Train User-item matrix shape: {train_user_item_matrix.shape}")
+
+
+# In[328]:
+
+
+user_item_matrix = ratings.pivot(index='user_id', columns='item_id', values='rating').fillna(0)
+
+# Tambahan informasi sparsity dan rata-rata rating per pengguna
+print(f"Sparsity matrix user-item: {(user_item_matrix == 0).sum().sum() / (user_item_matrix.shape[0] * user_item_matrix.shape[1]) * 100:.1f}%")
+ratings_per_user = ratings.groupby('user_id')['rating'].count()
+print(f"Rata-rata rating per pengguna: {ratings_per_user.mean():.0f}\nVariasi rating terendah per user: {ratings_per_user.min()}\nVariasi rating tertinggi per user: {ratings_per_user.max()}")
 
 
 # ## Modeling
 
 # Content-Based Filtering
 
-# In[294]:
+# In[329]:
 
 
 # TF-IDF Vectorization untuk genre
@@ -72,21 +246,21 @@ tfidf = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf.fit_transform(movies_with_genres['genre_string'])
 
 
-# In[295]:
+# In[330]:
 
 
 # Menghitung cosine similarity
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 
-# In[296]:
+# In[331]:
 
 
 # Membuat mapping judul ke index
 indices = pd.Series(movies_with_genres.index, index=movies_with_genres['title']).drop_duplicates()
 
 
-# In[297]:
+# In[332]:
 
 
 # Fungsi rekomendasi content-based
@@ -124,7 +298,7 @@ def get_content_recommendations(title, cosine_sim=cosine_sim, df=movies_with_gen
         return f"Terjadi error saat mencari rekomendasi untuk '{title}': {str(e)}"
 
 
-# In[298]:
+# In[333]:
 
 
 # Test rekomendasi content-based
@@ -143,7 +317,7 @@ else:
 
 # Collaborative Filtering
 
-# In[299]:
+# In[334]:
 
 
 # Menggunakan SVD untuk matrix factorization
@@ -152,7 +326,7 @@ user_factors = svd.fit_transform(user_item_matrix)
 item_factors = svd.components_
 
 
-# In[300]:
+# In[335]:
 
 
 # Rekonstruksi matrix
@@ -162,7 +336,7 @@ predicted_ratings_df = pd.DataFrame(predicted_ratings,
                                   columns=user_item_matrix.columns)
 
 
-# In[301]:
+# In[336]:
 
 
 # Fungsi rekomendasi collaborative filtering
@@ -200,7 +374,7 @@ def get_collaborative_recommendations(user_id, predicted_ratings_df=predicted_ra
     return pd.DataFrame(rec_with_titles)
 
 
-# In[302]:
+# In[337]:
 
 
 # Test rekomendasi collaborative filtering
@@ -218,7 +392,7 @@ else:
 
 # ## Evaluation
 
-# In[303]:
+# In[338]:
 
 
 # Evaluasi Content-Based FilterinG
@@ -238,7 +412,7 @@ def evaluate_content_based(sample_titles, top_n=10):
         return None, 0.0
 
 
-# In[304]:
+# In[339]:
 
 
 # Evaluasi Collaborative Filtering - RMSE & MAE
@@ -260,7 +434,7 @@ def evaluate_collaborative_rmse(test_user_item_matrix, predicted_ratings_df):
         return None, None
 
 
-# In[305]:
+# In[340]:
 
 
 # Evaluasi Collaborative Filtering - Precision@K
@@ -293,7 +467,7 @@ def evaluate_precision_at_k(predicted_ratings_df, test_user_item_matrix, k=5, th
     return round(np.mean(precisions), 4) if precisions else None
 
 
-# In[306]:
+# In[341]:
 
 
 sample_movies = movies_with_genres['title'].sample(10, random_state=42).tolist()
@@ -315,7 +489,7 @@ print(f"- Coverage Content-Based   : {coverage_content:.1f}%")
 
 # ## Inferensi
 
-# In[307]:
+# In[342]:
 
 
 # Content-based untuk user berdasarkan film favorit
@@ -339,22 +513,4 @@ collab_hybrid = get_collaborative_recommendations(1, top_n=3)
 if isinstance(collab_hybrid, pd.DataFrame):
     for i, (_, row) in enumerate(collab_hybrid.iterrows(), 1):
         print(f"{i}. {row['title']} (Pred: {row['predicted_rating']:.2f})")
-
-
-# In[308]:
-
-
-# Menyimpan hasil untuk laporan
-evaluation_results = {
-    'rmse': rmse_score if rmse_score else 'N/A',
-    'precision_at_5': avg_precision,
-    'coverage_content': coverage_content,
-    'total_movies': len(movies),
-    'total_ratings': len(ratings),
-    'total_users': ratings['user_id'].nunique()
-}
-
-print(f"\nHasil Evaluasi Final:")
-for key, value in evaluation_results.items():
-    print(f"{key}: {value}")
 
