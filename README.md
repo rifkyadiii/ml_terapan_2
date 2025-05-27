@@ -156,8 +156,8 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
 
 2. **Precision@K**
    - Formula:
+   
    $$
-
    \text{Precision@K} = \frac{|\text{Relevant items} \cap \text{Recommended items}|}{K}
    $$
 
@@ -170,7 +170,7 @@ Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value 
    $$
    \text{Coverage} = \frac{|\text{Items that can be recommended}|}{|\text{Total items}|}
    $$
-   
+
    - Mengukur persentase item yang dapat direkomendasikan sistem
 
 ### Hasil Evaluasi
