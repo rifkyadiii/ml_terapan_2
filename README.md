@@ -176,9 +176,6 @@ Metrik evaluasi yang digunakan untuk mengukur performa sistem rekomendasi:
     -   Mengukur seberapa besar proporsi item dalam katalog yang dapat direkomendasikan oleh sistem.
     -   Semakin tinggi coverage, semakin beragam item yang berpotensi untuk direkomendasikan. (Pada implementasi saat ini, 'Coverage Content-Based' yang dilaporkan adalah persentase keberhasilan fungsi dalam menghasilkan rekomendasi dari sampel judul film yang diuji, bukan coverage katalog).
 
-**Catatan untuk Evaluasi Content-Based Filtering:**
-Metrik seperti **Mean Similarity** (rata-rata skor cosine similarity dari item yang direkomendasikan) dapat memberikan gambaran tentang seberapa mirip rekomendasi dengan item input berdasarkan konten. Namun, ini lebih merupakan ukuran karakteristik daripada metrik performa prediktif. Untuk evaluasi performa yang lebih standar, metrik seperti **Precision@k, Recall@k, atau F1-score@k** akan lebih sesuai, namun ini memerlukan pendefinisian "item relevan" untuk setiap item uji dalam konteks content-based, yang bisa jadi kompleks (misalnya, berdasarkan kesamaan genre yang sangat spesifik atau data interaksi pengguna lain yang memvalidasi kesamaan tersebut).
-
 ### Hasil Evaluasi
 
 -   RMSE Collaborative                             : 1.850
