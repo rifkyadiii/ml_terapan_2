@@ -91,133 +91,113 @@ Visualisasi korelasi antar genre film menunjukkan beberapa korelasi positif dan 
 
 Teknik data preparation yang diterapkan:
 
-1. **Data Loading dan Integration**
-   - Memuat data dari file terpisah menggunakan pandas dengan encoding latin-1
-   - Menggabungkan data ratings dengan informasi film untuk analisis komprehensif
+1.  **Data Loading dan Integration**
+    - Memuat data dari file terpisah menggunakan pandas dengan encoding latin-1.
+    - Menggabungkan data ratings dengan informasi film untuk analisis komprehensif.
 
-2. **Data Cleaning**
-   - Validasi konsistensi ID pengguna dan film
-   - Penanganan missing values (tidak ditemukan missing values signifikan)
+2.  **Data Cleaning**
+    - Validasi konsistensi ID pengguna dan film.
+    - Penanganan missing values (tidak ditemukan missing values signifikan pada kolom yang digunakan).
 
-3. **Feature Engineering untuk Content-Based**
-   - Membuat kolom 'genre_string' dengan menggabungkan semua genre aktif untuk setiap film
-   - Transformasi binary genre indicators menjadi text format untuk TF-IDF processing
+3.  **Feature Engineering untuk Content-Based**
+    - Membuat kolom 'genre_string' dengan menggabungkan semua genre aktif untuk setiap film dalam format teks.
+    - **Transformasi 'genre_string' menggunakan TF-IDF Vectorizer** untuk menghasilkan representasi vektor numerik dari fitur genre film. Vektor ini akan digunakan untuk menghitung kesamaan antar film.
 
-4. **Matrix Preparation untuk Collaborative Filtering**
-   - Membuat user-item matrix dengan pivot table
-   - Mengisi missing values dengan 0 untuk film yang belum dirating
-   - Normalisasi tidak diperlukan karena SVD dapat menangani sparse matrix
+4.  **Data Splitting**
+    - Membagi dataset `ratings` menjadi data latih (`train_data`) dan data uji (`test_data`) dengan proporsi 80:20. Pemisahan ini bertujuan untuk evaluasi model yang objektif. Stratified split tidak secara eksplisit disebutkan dilakukan berdasarkan distribusi rating di kode, namun `random_state` digunakan untuk reproduktifitas.
 
-5. **Data Splitting**
-   - Membagi data menjadi train-test (80:20) untuk evaluasi objektif
-   - Stratified split berdasarkan distribusi rating
+5.  **Matrix Preparation untuk Collaborative Filtering**
+    - Membuat `user_item_matrix` dari keseluruhan data `ratings` (digunakan untuk melatih model SVD). Nilai yang hilang (film yang belum dirating) diisi dengan 0.
+    - Membuat `train_user_item_matrix` dari `train_data` (digunakan dalam fungsi rekomendasi untuk filtering dan berpotensi untuk melatih model jika SVD dilatih hanya pada data training).
+    - Membuat `test_user_item_matrix` dari `test_data` (digunakan untuk evaluasi performa model Collaborative Filtering).
+    - Normalisasi rating tidak dilakukan secara eksplisit karena SVD sebagai teknik faktorisasi matriks dapat menangani data sparse secara inheren.
 
-Tahapan preparation diperlukan untuk memastikan data siap diproses oleh algoritma machine learning, menangani sparsity issue, dan memungkinkan evaluasi yang valid.
+Tahapan preparation ini diperlukan untuk memastikan data siap diproses oleh algoritma machine learning, menangani sparsity, menyiapkan fitur yang relevan, dan memungkinkan evaluasi yang valid.
 
 ## Modeling
 
 ### Content-Based Filtering
 
-Algoritma yang digunakan adalah TF-IDF Vectorizer kombinasi dengan Cosine Similarity.
+Algoritma yang digunakan adalah kombinasi TF-IDF Vectorizer (dari tahap Data Preparation) dan Cosine Similarity.
 
 **Proses modeling:**
-1. Transformasi genre string menggunakan TF-IDF untuk menghasilkan vektor numerik
-2. Perhitungan cosine similarity antar film berdasarkan vektor genre
-3. Ranking film berdasarkan similarity score tertinggi
+1.  Menggunakan matriks TF-IDF dari genre film yang telah dibuat pada tahap Data Preparation.
+2.  Menghitung matriks `cosine_similarity` antar semua film berdasarkan vektor TF-IDF genre mereka.
+3.  Untuk film input, sistem akan mengambil N film teratas dengan skor cosine similarity tertinggi sebagai rekomendasi.
 
 **Hasil Top-5 Rekomendasi untuk "Toy Story (1995)":**
-1. Aladdin and the King of Thieves (1996) - Similarity: 1.000
-2. Aristocats, The (1970) - Similarity: 0.937
-3. Pinocchio (1940) - Similarity: 0.937
-4. Sword in the Stone, The (1963) - Similarity: 0.937
-5. Fox and the Hound, The (1981)) - Similarity: 0.937
+1.  Aladdin and the King of Thieves (1996) - Similarity: 1.000
+2.  Aristocats, The (1970) - Similarity: 0.937
+3.  Pinocchio (1940) - Similarity: 0.937
+4.  Sword in the Stone, The (1963) - Similarity: 0.937
+5.  Fox and the Hound, The (1981)) - Similarity: 0.937
 
 ### Collaborative Filtering
 
 Algoritma yang digunakan adalah Matrix Factorization dengan SVD (Singular Value Decomposition).
 
 **Proses modeling:**
-1. Dekomposisi user-item matrix menggunakan TruncatedSVD dengan 50 komponen
-2. Rekonstruksi matrix untuk prediksi rating
-3. Ranking film berdasarkan predicted rating tertinggi yang belum ditonton
+1.  Melakukan dekomposisi `user_item_matrix` (yang dibuat dari keseluruhan data rating) menggunakan TruncatedSVD dengan 50 komponen untuk mendapatkan faktor pengguna dan faktor item.
+2.  Melakukan rekonstruksi matriks rating dengan mengalikan faktor pengguna dan faktor item untuk mendapatkan prediksi rating untuk semua pasangan user-item.
+3.  Untuk pengguna tertentu, sistem akan merekomendasikan item-item yang belum pernah dirating oleh pengguna tersebut, diurutkan berdasarkan prediksi rating tertinggi.
 
 **Hasil Top-5 Rekomendasi untuk User ID 1:**
-1. Fargo (1996) - Predicted Rating: 6.40
-2. Toy Story (1995) - Predicted Rating: 5.11
-3. Blues Brothers, The (1980) -Predicted Rating: 4.63
-4. Fish Called Wanda, A (1988) - Predicted Rating: 4.56
-5. Reservoir Dogs (1992) - Predicted Rating: 4.39
+1.  Fargo (1996) - Predicted Rating: 6.40
+2.  Toy Story (1995) - Predicted Rating: 5.11
+3.  Blues Brothers, The (1980) -Predicted Rating: 4.63
+4.  Fish Called Wanda, A (1988) - Predicted Rating: 4.56
+5.  Reservoir Dogs (1992) - Predicted Rating: 4.39
 
 ### Kelebihan dan Kekurangan
 
 **Content-Based Filtering:**
-- Kelebihan: Tidak ada cold start problem untuk item baru, transparan dan explainable, tidak memerlukan data pengguna lain
-- Kekurangan: Limited diversity, over-specialization, bergantung pada kualitas feature extraction
+-   Kelebihan: Tidak ada cold start problem untuk item baru (selama item memiliki fitur konten), rekomendasi transparan dan explainable, tidak memerlukan data rating dari pengguna lain.
+-   Kekurangan: Keterbatasan diversitas (cenderung merekomendasikan item yang sangat mirip), potensi over-specialization, sangat bergantung pada kualitas dan kelengkapan fitur konten yang diekstrak.
 
 **Collaborative Filtering:**
-- Kelebihan: Dapat menemukan pola kompleks dan tersembunyi, diversity tinggi, tidak bergantung pada content features
-- Kekurangan: Cold start problem untuk user dan item baru, memerlukan data rating yang substantial, computational complexity tinggi
+-   Kelebihan: Mampu menemukan pola preferensi yang kompleks dan item yang mengejutkan (serendipity), dapat menghasilkan rekomendasi yang lebih beragam, tidak bergantung pada fitur konten item.
+-   Kekurangan: Mengalami cold start problem untuk pengguna baru dan item baru (yang belum memiliki interaksi), membutuhkan data rating yang substansial untuk performa yang baik, sparsity data bisa menjadi masalah, potensi kompleksitas komputasi yang tinggi pada dataset besar.
 
 ## Evaluation
 
 ### Metrik Evaluasi
 
-1. **Root Mean Square Error (RMSE)**
+Metrik evaluasi yang digunakan untuk mengukur performa sistem rekomendasi:
 
-   - **Formula**:
-     ```
-     RMSE = sqrt( (1/n) * Σ(predictedᵢ - actualᵢ)² )
-     ```
-   - Mengukur akurasi prediksi rating dengan menghitung akar kuadrat dari rata-rata kuadrat selisih antara nilai prediksi dan nilai aktual.
-   - Semakin kecil nilai RMSE, semakin baik akurasi model.
+1.  **Root Mean Square Error (RMSE)** - *Untuk Collaborative Filtering*
+    -   **Formula**: $RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (predicted_i - actual_i)^2}$
+    -   Mengukur akurasi prediksi rating dengan menghitung akar kuadrat dari rata-rata kuadrat selisih antara nilai prediksi dan nilai aktual pada data uji.
+    -   Semakin kecil nilai RMSE, semakin baik akurasi prediksi model.
 
-2. **Mean Absolute Error (MAE)**
+2.  **Mean Absolute Error (MAE)** - *Untuk Collaborative Filtering*
+    -   **Formula**: $MAE = \frac{1}{n} \sum_{i=1}^{n} |predicted_i - actual_i|$
+    -   Mengukur rata-rata absolut dari selisih antara nilai prediksi dan nilai aktual pada data uji.
+    -   Semakin kecil nilai MAE, semakin akurat prediksi model.
 
-   - **Formula**:
-     ```
-     MAE = (1/n) * Σ|predictedᵢ - actualᵢ|
-     ```
-   - Mengukur rata-rata absolut dari selisih antara nilai prediksi dan nilai aktual.
-   - Semakin kecil nilai MAE, semakin akurat prediksi model.
+3.  **Precision@k (Precision at K)** - *Untuk Collaborative Filtering*
+    -   **Formula**: $Precision@k = \frac{\text{Jumlah item relevan pada top-k}}{\text{k}}$
+    -   Menilai seberapa banyak item yang direkomendasikan dalam top-k yang benar-benar relevan bagi pengguna (item yang relevan didefinisikan sebagai item yang diberi rating tinggi, misal >= 4, oleh pengguna di data uji).
+    -   Contoh: Precision@5 mengukur proporsi item relevan dari 5 item teratas yang direkomendasikan.
 
-3. **Precision@k (Precision at K)**
+4.  **Coverage** - *Dapat diterapkan pada kedua jenis model*
+    -   **Formula**: $Coverage = \frac{\text{Jumlah item unik yang dapat direkomendasikan}}{\text{Total item unik dalam katalog}} \times 100\%$
+    -   Mengukur seberapa besar proporsi item dalam katalog yang dapat direkomendasikan oleh sistem.
+    -   Semakin tinggi coverage, semakin beragam item yang berpotensi untuk direkomendasikan. (Pada implementasi saat ini, 'Coverage Content-Based' yang dilaporkan adalah persentase keberhasilan fungsi dalam menghasilkan rekomendasi dari sampel judul film yang diuji, bukan coverage katalog).
 
-   - **Formula**:
-     ```
-     Precision@k = (Jumlah item relevan pada top-k) / k
-     ```
-   - Menilai seberapa banyak item yang direkomendasikan dalam top-**k** yang benar-benar relevan dengan pengguna.
-   - Contoh: Precision@5 mengukur proporsi item relevan dari 5 item teratas yang direkomendasikan.
-
-4. **Mean Similarity (Content-Based Filtering)**
-
-   - **Formula**:
-     ```
-     Mean Similarity = (1/n) * Σ similarity(i)
-     ```
-   - Mengukur rata-rata kemiripan antara item yang direkomendasikan dan item yang telah disukai pengguna berdasarkan fitur konten.
-   - Nilai mendekati 1 menunjukkan bahwa rekomendasi sangat mirip dengan preferensi pengguna.
-
-5. **Coverage (Content-Based Filtering)**
-
-   - **Formula**:
-     ```
-     Coverage = (Jumlah item yang direkomendasikan / Total item yang tersedia) * 100%
-     ```
-   - Mengukur seberapa besar proporsi item yang dapat direkomendasikan oleh sistem dari keseluruhan item yang ada.
-   - Semakin tinggi coverage, semakin beragam item yang bisa direkomendasikan.
+**Catatan untuk Evaluasi Content-Based Filtering:**
+Metrik seperti **Mean Similarity** (rata-rata skor cosine similarity dari item yang direkomendasikan) dapat memberikan gambaran tentang seberapa mirip rekomendasi dengan item input berdasarkan konten. Namun, ini lebih merupakan ukuran karakteristik daripada metrik performa prediktif. Untuk evaluasi performa yang lebih standar, metrik seperti **Precision@k, Recall@k, atau F1-score@k** akan lebih sesuai, namun ini memerlukan pendefinisian "item relevan" untuk setiap item uji dalam konteks content-based, yang bisa jadi kompleks (misalnya, berdasarkan kesamaan genre yang sangat spesifik atau data interaksi pengguna lain yang memvalidasi kesamaan tersebut).
 
 ### Hasil Evaluasi
 
-- RMSE Collaborative       : 1.850
-- MAE Collaborative        : 1.536
-- Precision@5              : 0.717
-- Content-Based Mean Sim   : 0.980
-- Coverage Content-Based   : 90.0%
+-   RMSE Collaborative                             : 1.850
+-   MAE Collaborative                              : 1.536
+-   Precision@5 Collaborative                      : 0.717
+-   Content-Based Mean Similarity (karakteristik)  : 0.980
+-   Coverage (fungsi Content-Based pada sampel uji): 90.0%
 
 **Interpretasi Hasil:**
-- RMSE Collaborative sebesar 1.850 menunjukkan rata-rata kesalahan prediksi rating sekitar 1.85 poin.
-- MAE Collaborative sebesar 1.536 menunjukkan rata-rata selisih absolut antara prediksi dan rating sebenarnya adalah 1.536 poin.
-- Precision@5 sebesar 0.717 berarti sekitar 71.7% dari 5 rekomendasi teratas adalah item yang relevan bagi pengguna.
-- Content-Based Mean Sim sebesar 0.980 menunjukkan similaritas yang sangat tinggi antar item rekomendasi dan item input berdasarkan konten.
-- Coverage Content-Based sebesar 90.0% berarti model content-based dapat merekomendasikan 90% dari total item.
+-   RMSE Collaborative sebesar 1.850 menunjukkan rata-rata kesalahan prediksi rating oleh model SVD adalah sekitar 1.85 poin pada skala rating.
+-   MAE Collaborative sebesar 1.536 menunjukkan rata-rata selisih absolut antara prediksi rating dan rating sebenarnya adalah 1.536 poin.
+-   Precision@5 Collaborative sebesar 0.717 berarti sekitar 71.7% dari 5 rekomendasi teratas yang diberikan oleh model collaborative filtering adalah item yang dianggap relevan (rating >= 4) oleh pengguna di set pengujian.
+-   Content-Based Mean Similarity sebesar 0.980 menunjukkan bahwa item-item yang direkomendasikan oleh model content-based memiliki kesamaan genre yang sangat tinggi (rata-rata skor ~0.98) dengan film input. Ini mengindikasikan model bekerja sesuai desain dalam menemukan item yang secara konten serupa.
+-   Coverage fungsi Content-Based sebesar 90.0% (berdasarkan sampel uji) menunjukkan bahwa untuk sebagian besar film yang diuji (9 dari 10 film sampel), model berhasil menghasilkan daftar rekomendasi.
