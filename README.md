@@ -73,7 +73,7 @@ Berdasarkan data rating, film "Star Wars (1977)" menjadi film dengan jumlah rati
 
 ![Film Rata-rata Rating Tertinggi](image/film_rata_rata_rating_tertringgi.png)
 
-Berdasarkan rata-rata rating dengan minimal 50 rating, film "12 Angry Men (1957)" dan "Close Shave, A (1995)" menduduki peringkat teratas, diikuti oleh film-film klasik seperti "Star Wars (1977)", "Usual Suspects, The (1995)", dan "Schindler's List (1993)".
+Berdasarkan rata-rata rating dengan minimal 50 rating, film "Close Shave, A (1995)" menduduki peringkat teratas, diikuti oleh film-film klasik seperti "Schindler's List (1993)", Wrong Trouesers (1993) dan Casablanca (1942).
 
 ![Distribusi Rating Per Pengguna](image/ditribusi_rating_per_perngguna.png)
 
@@ -91,22 +91,14 @@ Visualisasi korelasi antar genre film menunjukkan beberapa korelasi positif dan 
 
 Teknik data preparation yang diterapkan:
 
-1.  **Data Loading dan Integration**
-    - Memuat data dari file terpisah menggunakan pandas dengan encoding latin-1.
-    - Menggabungkan data ratings dengan informasi film untuk analisis komprehensif.
-
-2.  **Data Cleaning**
-    - Validasi konsistensi ID pengguna dan film.
-    - Penanganan missing values (tidak ditemukan missing values signifikan pada kolom yang digunakan).
-
-3.  **Feature Engineering untuk Content-Based**
+1.  **Feature Engineering untuk Content-Based**
     - Membuat kolom 'genre_string' dengan menggabungkan semua genre aktif untuk setiap film dalam format teks.
     - **Transformasi 'genre_string' menggunakan TF-IDF Vectorizer** untuk menghasilkan representasi vektor numerik dari fitur genre film. Vektor ini akan digunakan untuk menghitung kesamaan antar film.
 
-4.  **Data Splitting**
+2.  **Data Splitting**
     - Membagi dataset `ratings` menjadi data latih (`train_data`) dan data uji (`test_data`) dengan proporsi 80:20. Pemisahan ini bertujuan untuk evaluasi model yang objektif. Stratified split tidak secara eksplisit disebutkan dilakukan berdasarkan distribusi rating di kode, namun `random_state` digunakan untuk reproduktifitas.
 
-5.  **Matrix Preparation untuk Collaborative Filtering**
+3.  **Matrix Preparation untuk Collaborative Filtering**
     - Membuat `user_item_matrix` dari keseluruhan data `ratings` (digunakan untuk melatih model SVD). Nilai yang hilang (film yang belum dirating) diisi dengan 0.
     - Membuat `train_user_item_matrix` dari `train_data` (digunakan dalam fungsi rekomendasi untuk filtering dan berpotensi untuk melatih model jika SVD dilatih hanya pada data training).
     - Membuat `test_user_item_matrix` dari `test_data` (digunakan untuk evaluasi performa model Collaborative Filtering).
@@ -191,13 +183,15 @@ Metrik seperti **Mean Similarity** (rata-rata skor cosine similarity dari item y
 
 -   RMSE Collaborative                             : 1.850
 -   MAE Collaborative                              : 1.536
--   Precision@5 Collaborative                      : 0.717
--   Content-Based Mean Similarity (karakteristik)  : 0.980
--   Coverage (fungsi Content-Based pada sampel uji): 90.0%
+-   Precision@5 Collaborative                      : 0.175
+-   Content-Based Mean Similarity (karakteristik)  : 0.982
+-   Coverage (fungsi Content-Based pada sampel uji): 100.0%
 
 **Interpretasi Hasil:**
--   RMSE Collaborative sebesar 1.850 menunjukkan rata-rata kesalahan prediksi rating oleh model SVD adalah sekitar 1.85 poin pada skala rating.
--   MAE Collaborative sebesar 1.536 menunjukkan rata-rata selisih absolut antara prediksi rating dan rating sebenarnya adalah 1.536 poin.
--   Precision@5 Collaborative sebesar 0.717 berarti sekitar 71.7% dari 5 rekomendasi teratas yang diberikan oleh model collaborative filtering adalah item yang dianggap relevan (rating >= 4) oleh pengguna di set pengujian.
--   Content-Based Mean Similarity sebesar 0.980 menunjukkan bahwa item-item yang direkomendasikan oleh model content-based memiliki kesamaan genre yang sangat tinggi (rata-rata skor ~0.98) dengan film input. Ini mengindikasikan model bekerja sesuai desain dalam menemukan item yang secara konten serupa.
--   Coverage fungsi Content-Based sebesar 90.0% (berdasarkan sampel uji) menunjukkan bahwa untuk sebagian besar film yang diuji (9 dari 10 film sampel), model berhasil menghasilkan daftar rekomendasi.
+-   Nilai Root Mean Squared Error (RMSE) untuk model collaborative filtering (SVD) adalah 1.850. Metrik ini mengukur rata-rata magnitudo kesalahan prediksi rating. Dalam konteks skala rating 1-5, ini menunjukkan bahwa, secara rata-rata, prediksi rating yang diberikan oleh model SVD memiliki selisih sekitar 1.85 poin dari rating aktual yang diberikan oleh pengguna. Semakin rendah nilai RMSE, semakin akurat model dalam memprediksi rating.
+-   Mean Absolute Error (MAE) sebesar 1.536 juga mengukur rata-rata kesalahan prediksi rating. Berbeda dengan RMSE yang memberikan bobot lebih pada kesalahan besar, MAE menghitung rata-rata selisih absolut. Nilai ini mengindikasikan bahwa, rata-rata, prediksi rating menyimpang sekitar 1.54 poin dari rating sebenarnya. Nilai ini sedikit lebih rendah dari RMSE, yang mungkin menunjukkan adanya beberapa prediksi dengan kesalahan yang cukup besar yang lebih dipenalti oleh RMSE.
+-   Precision@5 untuk model collaborative filtering adalah 0.175. Metrik ini mengevaluasi seberapa relevan 5 item teratas yang direkomendasikan kepada pengguna. Nilai 0.175 berarti bahwa, rata-rata, sekitar 17.5% dari 5 film yang direkomendasikan adalah film yang memang dianggap relevan oleh pengguna di set pengujian (dalam kasus ini, film dengan rating aktual >= 4.0). Ini menunjukkan bahwa ada ruang untuk peningkatan dalam hal ketepatan rekomendasi pada daftar teratas.
+-   Untuk model content-based filtering, rata-rata skor similaritas (berdasarkan genre dengan TF-IDF dan Cosine Similarity) dari item-item yang direkomendasikan terhadap film input adalah 0.982. Skor yang sangat tinggi ini (mendekati 1.0) menunjukkan bahwa model berhasil menemukan dan merekomendasikan film-film yang memiliki profil genre yang sangat mirip dengan film yang dijadikan acuan. Hal ini sesuai dengan tujuan dari content-based filtering, yaitu merekomendasikan berdasarkan kesamaan atribut.
+-   Cakupan sebesar 100.0% untuk fungsi content-based (berdasarkan sampel uji yang digunakan dalam evaluasi) menunjukkan bahwa untuk semua film yang diuji dalam sampel tersebut, model mampu menghasilkan daftar rekomendasi. Ini mengindikasikan bahwa fungsi rekomendasi content-based cukup robust dan dapat memberikan hasil untuk berbagai input film (dalam batasan sampel yang diuji dan ketersediaan genre).
+
+Secara keseluruhan, model collaborative filtering (SVD) menunjukkan kemampuan untuk memprediksi rating dengan tingkat kesalahan yang terukur oleh RMSE dan MAE. Namun, Precision@5 mengindikasikan bahwa akurasi dalam menyajikan item yang paling relevan di posisi teratas masih bisa ditingkatkan. Di sisi lain, model content-based sangat efektif dalam menemukan item yang serupa secara konten (genre), sebagaimana ditunjukkan oleh skor similaritas yang tinggi dan cakupan yang baik pada sampel uji.
